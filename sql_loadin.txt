@@ -1,0 +1,80 @@
+CREATE TABLE Node
+(
+id INTEGER PRIMARY KEY,
+lat REAL,
+lon REAL,
+user NVARCHAR(50),
+uid INTEGER,
+version VARCHAR(5),
+changeset INTEGER,
+timestamp VARCHAR(50)
+);
+
+CREATE TABLE Way
+(
+id INTEGER PRIMARY KEY,
+user NVARCHAR(50),
+uid INTEGER,
+version VARCHAR(5),
+changeset INTEGER,
+timestamp VARCHAR(50)
+);
+
+CREATE TABLE Relation
+(
+id INTEGER PRIMARY KEY,
+user NVARCHAR(50),
+uid INTEGER,
+version VARCHAR(5),
+changeset INTEGER,
+timestamp VARCHAR(50)
+);
+
+CREATE TABLE NodeTag
+(
+tagid INTEGER PRIMARY KEY,
+id INTEGER,
+key NVARCHAR(50),
+value NVARCHAR(50),
+type VARCHAR(10),
+FOREIGN KEY (id) REFERENCES Node (id) 
+);
+
+CREATE TABLE WayTag
+(
+tagid INTEGER PRIMARY KEY,
+id INTEGER,
+key NVARCHAR(50),
+value NVARCHAR(50),
+type VARCHAR(10),
+FOREIGN KEY (id) REFERENCES Way (id) 
+);
+
+CREATE TABLE RelationTag
+(
+tagid INTEGER PRIMARY KEY,
+id INTEGER,
+key NVARCHAR(50),
+value NVARCHAR(50),
+type VARCHAR(10),
+FOREIGN KEY (id) REFERENCES Relation (id) 
+);
+
+CREATE TABLE WayNode
+(
+thisid INTEGER PRIMARY KEY,
+id INTEGER,
+node_id INTEGER,
+position INTEGER
+);
+
+CREATE TABLE RelationMember
+(
+thisid INTEGER PRIMARY KEY,
+id INTEGER,
+member_id INTEGER,
+type VARCHAR(10),
+role NVARCHAR(40)
+);
+
+

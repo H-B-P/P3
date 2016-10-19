@@ -1,0 +1,9 @@
+.mode csv
+.import nodes.csv Node
+.import ways.csv Way
+.import relations.csv Relation
+.import nodes_tags.csv NodeTag
+.import ways_tags.csv WayTag
+.import relations_tags.csv RelationTag
+.import ways_nodes.csv WayNode
+.import relations_members.csv RelationMember

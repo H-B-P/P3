@@ -1,0 +1,64 @@
+SELECT count(*) FROM Node;
+SELECT count(*) FROM Way;
+SELECT count(*) FROM Relation;
+
+SELECT user, count(uid) FROM Node GROUP BY uid ORDER BY count(uid) DESC LIMIT 5;
+SELECT user, count(uid) FROM Way GROUP BY uid ORDER BY count(uid) DESC LIMIT 5;
+SELECT user, count(uid) FROM Relation GROUP BY uid ORDER BY count(uid) DESC LIMIT 5;
+
+SELECT count(*) FROM (SELECT * FROM Relation GROUP BY uid);
+
+SELECT Value, count(*) FROM NodeTag WHERE Key="building" GROUP BY Value;
+SELECT Value, count(*) FROM WayTag WHERE Key="building" GROUP BY Value;
+SELECT Value, count(*) FROM RelationTag WHERE Key="building" GROUP BY Value;
+
+SELECT count(*) FROM (Node INNER JOIN NodeTag ON Node.id=NodeTag.id) WHERE NodeTag.key="building";
+SELECT count(*) FROM (Way INNER JOIN WayTag ON Way.id=WayTag.id) WHERE WayTag.key="building";
+SELECT count(*) FROM (Relation INNER JOIN RelationTag ON Relation.id=RelationTag.id) WHERE RelationTag.key="building";
+
+(1) This command selects all the ways with a given tag:
+
+SELECT * FROM (Node INNER JOIN NodeTag ON Node.id=NodeTag.id) WHERE NodeTag.key="building";
+SELECT * FROM (Way INNER JOIN WayTag ON Way.id=WayTag.id) WHERE WayTag.key="building";
+SELECT * FROM (Relation INNER JOIN RelationTag ON Relation.id=RelationTag.id) WHERE RelationTag.key="building";
+
+(2) This command finds max and min lat and lon for all nodes in a given way:
+
+SELECT Way.id, max(lat), min(lat), max(lon), min(lon) FROM ((Way JOIN WayNode ON Way.id=WayNode.id) JOIN Node ON Node.id=WayNode.node_id) GROUP BY Way.id;
+
+(3) This command finds all nodes inside a given max and min:
+
+SELECT * from Node WHERE Node.lat>=minlat AND Node.lat<=maxlat AND Node.lat>=minlat AND Node.lat<=maxlat;
+
+(3) and (2) combined:
+
+SELECT count(*) FROM (SELECT * FROM Node, (SELECT Way.id, max(lat) as maxlat, min(lat) as minlat, max(lon) as maxlon, min(lon) as minlon FROM ((Way JOIN WayNode ON Way.id=WayNode.id) JOIN Node ON Node.id=WayNode.node_id) GROUP BY Way.id) as limits WHERE Node.lat>=limits.minlat AND Node.lat<=maxlat AND Node.lon>=minlon AND Node.lon<=maxlon GROUP BY Node.id);
+
+(1) & (2) & (3):
+
+(SELECT * FROM (Node INNER JOIN NodeTag ON Node.id=NodeTag.id) WHERE NodeTag.key="building") as BNode
+
+(SELECT * FROM (Way INNER JOIN WayTag ON Way.id=WayTag.id) WHERE WayTag.key="building") as BWay
+
+SELECT count(*) from (SELECT * FROM (Node INNER JOIN NodeTag ON Node.id=NodeTag.id) WHERE NodeTag.key="building") as BNode, (SELECT BWay.id as bwid, max(lat) as maxlat, min(lat) as minlat, max(lon) as maxlon, min(lon) as minlon FROM (((SELECT * FROM (Way INNER JOIN WayTag ON Way.id=WayTag.id) WHERE WayTag.key="building") as BWay JOIN WayNode ON BWay.id=WayNode.id) JOIN Node ON Node.id=WayNode.node_id) GROUP BY bwid) as limits WHERE BNode.lat>=minlat AND BNode.lat<=maxlat AND BNode.lon>=minlon AND BNode.lon<=maxlon;
+
+This command guesses at the centres of all ways:
+
+SELECT Way.id, (max(lat)+min(lat))/2 as approxlat, (max(lon)+min(lon))/2 as approxlon FROM ((Way JOIN WayNode ON Way.id=WayNode.id) JOIN Node ON Node.id=WayNode.node_id) GROUP BY Way.id;
+
+This command finds average longitude:
+
+SELECT avg(approxlon) FROM (SELECT BWay.id, (max(lat)+min(lat))/2 as approxlat, (max(lon)+min(lon))/2 as approxlon FROM ((SELECT * FROM (Way INNER JOIN WayTag ON Way.id=WayTag.id) WHERE WayTag.key="building") as BWay JOIN WayNode ON BWay.id=WayNode.id) JOIN Node ON Node.id=WayNode.node_id);
+
+This command finds details of a building:
+
+(SELECT *, (max(lat)+min(lat))/2 as approxlat, (max(lon)+min(lon))/2 as approxlon FROM ((Way JOIN WayNode ON Way.id=WayNode.id) JOIN Node ON Node.id=WayNode.node_id) GROUP BY Way.id) as LWay
+
+This command finds what an earlier command does, using a slightly different format:
+
+SELECT Value, count(*) FROM (Way INNER JOIN WayTag ON Way.id=WayTag.id) WHERE WayTag.key="building" GROUP BY Value;
+
+This command combines the previous two commands:
+
+SELECT Value, count(*) FROM ((SELECT *, (max(lat)+min(lat))/2 as approxlat, (max(lon)+min(lon))/2 as approxlon FROM ((Way JOIN WayNode ON Way.id=WayNode.id) JOIN Node ON Node.id=WayNode.node_id) GROUP BY Way.id) as LWay INNER JOIN WayTag ON LWay.id=WayTag.id) WHERE WayTag.key="building" AND LWay.approxlon>116.4044316 GROUP BY Value;
+

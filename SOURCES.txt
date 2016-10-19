@@ -1,0 +1,6 @@
+SOURCES:
+
+https://en.wikipedia.org/wiki/Longitude
+http://www.pythonforbeginners.com/system/python-sys-argv
+https://docs.python.org/2/howto/unicode.html
+Various programs from the relevant Udacity course, some SQL commands from the relevant example report.
